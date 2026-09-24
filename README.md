@@ -3,3 +3,7 @@
 - Kien Nguyen
 - Tj Woods
 - Andrew Yang
+
+# Prerequisites
+- opencv-python
+- Pillow

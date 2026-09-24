@@ -1,19 +1,27 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog as tkfiledialog
-import cv2
+import cv2 as cv
+import pathlib
+from PIL import Image, ImageTk
 import random
 
-class GameConfig:
-    def __init__(self, size, img_path, ):
+class GameState:
+    def __init__(self, size=None, img_path=None):
         self.__size = size
         self.__img_path = img_path
 
-    def get_size(self):
-        return self.__size
+    def set_size(self, size):
+        self.__size = size
 
-    def get_img_path(self):
-        return self.__img_path
+    def set_img_path(self, img_path):
+        self.__img_path = img_path
+
+    def get_size(self) -> int:
+        return int(self.__size)
+
+    def get_img_path(self) -> str:
+        return str(self.__img_path)
 
 
 class App(tk.Tk):
@@ -37,6 +45,11 @@ class App(tk.Tk):
 
     def show_frame(self, controller):
         frame = self.frames[controller]
+
+        # update page prior to showing
+        if hasattr(frame, "on_show"):
+            frame.on_show()
+        # show page
         frame.tkraise()
 
 
@@ -47,7 +60,7 @@ class StartPage(tk.Frame):
         # Define widgets
 
         # set game size
-        rdio_lbl = tk.Label(
+        self.rdio_lbl = tk.Label(
             self,
             text = "Select Game Size:"
         )
@@ -71,15 +84,22 @@ class StartPage(tk.Frame):
 
         # select image file
         def upload_file():
+            """
+            Opens file picker dialog.
+            """
             nonlocal file_path
             file_path = tkfiledialog.askopenfilename(title="Select Game Image", filetypes=[("Image File", ('*.png', '*.jpg', '*.bmp'))])
             print(f"Debug: Selected file = {file_path} of type {type(file_path)}")
 
         file_path = ""
-        file_select_btn = ttk.Button(self, text="Select Image", command=upload_file)
+        self.file_select_btn = ttk.Button(self, text="Select Image", command=upload_file)
 
-        # enter game
-        def validate_start_game():
+        # play game
+        def validate_start_game() -> bool:
+            """
+            Determine whether game variables are valid.
+            Returns True if yes, else False.
+            """
             valid = True
             if not (3 <= g_size.get() <= 5):
                 valid = False
@@ -92,12 +112,18 @@ class StartPage(tk.Frame):
             return valid
 
         def play_game():
-            "Assumes valid start variables"
-            # TODO:
+            """
+            Start game.
+            Updates game state class.
+            Switches pages.
+            Assumes valid start variables.
+            """
             print(f"Debug: Enter Game of size {g_size.get()} with image {file_path}")
+            game_state.set_img_path(file_path)
+            game_state.set_size(g_size)
             controller.show_frame(GamePage)
 
-        enter_btn = ttk.Button(
+        self.enter_btn = ttk.Button(
             self,
             text = "Save & Enter",
             command = lambda: play_game() if validate_start_game() else None
@@ -105,25 +131,48 @@ class StartPage(tk.Frame):
 
         # Place widgets
         # TODO: make it look pretty
-        rdio_lbl.grid(row=0, column=0)
+        self.rdio_lbl.grid(row=0, column=0)
         i = 0
         for rdio in rdios:
             rdio.grid(row=1+i, column=0)
             i += 1
-        file_select_btn.grid(row=1, column=1)
-        enter_btn.grid(row=1+i-1, column=1)
+        self.file_select_btn.grid(row=1, column=1)
+        self.enter_btn.grid(row=1+i-1, column=1)
 
 
 class GamePage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
 
-        l = tk.Label(self, text="Test", fg="red")
-        l.grid(row=1, column=1)
+        # Define widgets
+
+        # Original image
+        self.original_lbl = tk.Label(self, text="Original")
+        # initialise image to None so it will load on app launch
+        img = None
+        self.original_img = tk.Label(self, text="No image loaded")
+
+
+        # Place widgets
+        # TODO: make it look pretty
+        self.original_lbl.grid(row=0, column=0)
+        self.original_img.grid(row=1, column=0)
+
+    def on_show(self):
+        path = pathlib.Path(game_state.get_img_path()).resolve()
+        if path.is_file():
+            cv_img = cv.imread(str(path))
+            rgb_img = cv.cvtColor(cv_img, cv.COLOR_BGR2RGB)
+            pil_img = Image.fromarray(rgb_img)
+            self.img = ImageTk.PhotoImage(pil_img)
+            self.original_img.config(image=self.img, text="")
+
 
 
 def main():
     # Init window
+    global game_state
+    game_state = GameState()
     window = App()
     window.title("Puzzle Game")
     window.geometry("640x480")
