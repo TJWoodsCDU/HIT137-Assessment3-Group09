@@ -165,6 +165,9 @@ class GamePage(tk.Frame):
 
         self.selected_tile = None
 
+        self.hints_used = 0
+        self.max_hints = 3
+
         # Game information
         self.status_label = ttk.Label(
             self,
@@ -192,6 +195,18 @@ class GamePage(tk.Frame):
             command=self.flip_selected
         )
 
+        self.hint_btn = ttk.Button(
+            self.controls,
+            text="Hint",
+            command=self.show_hint
+        )
+
+        self.solve_btn = ttk.Button(
+            self.controls,
+            text="Solve",
+            command=self.solve_puzzle
+        )
+
         # Place widgets
         # TODO: make it look pretty
         self.original_lbl.grid(row=0, column=0)
@@ -209,21 +224,12 @@ class GamePage(tk.Frame):
             pady=10
         )
 
-        self.controls.grid(
-            row=3,
-            column=0,
-            columnspan=2,
-            pady=10
-        )
-
-        self.rotate_left_btn.grid(row=0, column=0, padx=5)
-        self.rotate_right_btn.grid(row=0, column=1, padx=5)
-        self.flip_btn.grid(row=0, column=2, padx=5)
-
         # Place control buttons
         self.rotate_left_btn.grid(row=0, column=0, padx=5)
         self.rotate_right_btn.grid(row=0, column=1, padx=5)
         self.flip_btn.grid(row=0, column=2, padx=5)
+        self.hint_btn.grid(row=0, column=3, padx=5)
+        self.solve_btn.grid(row=0, column=4, padx=5)
 
         # Place controls under puzzle
         self.controls.grid(
@@ -256,9 +262,16 @@ class GamePage(tk.Frame):
 
             # Create puzzle board
             self.board = PuzzleBoard(prepared_img, grid_size)
+            self.hints_used = 0
+            self.hint_btn.config(state="normal")
 
             # Scramble the puzzle
             self.board.scramble(random.Random())
+
+            self.status_label.config(
+                text=f"Moves: {self.board.moves} | "
+                f"Tiles remaining: {self.board.tiles_remaining()}"
+            )
 
             # Render the scrambled puzzle
             puzzle_cv = self.board.render()
@@ -326,6 +339,62 @@ class GamePage(tk.Frame):
         print(f"Flipped tile: {self.selected_tile}")
         print(f"Moves: {self.board.moves}")
         print(f"Tiles remaining: {self.board.tiles_remaining()}")
+
+    def show_hint(self):
+        if self.board is None:
+            return
+
+        if self.hints_used >= self.max_hints:
+            tk.messagebox.showinfo(
+                "Hint",
+                "You have already used all 3 hints."
+            )
+            return
+
+        incorrect = self.board.incorrect_positions()
+
+        if not incorrect:
+            tk.messagebox.showinfo(
+                "Hint",
+                "All tiles are already in the correct position!"
+            )
+            return
+
+        position = incorrect[0]
+        correct_position = self.board.home_of(position)
+
+        current_row, current_col = self.board.cell_of(position)
+        correct_row, correct_col = self.board.cell_of(correct_position)
+
+        self.hints_used += 1
+
+        tk.messagebox.showinfo(
+            "Hint",
+            f"Tile at row {current_row + 1}, column {current_col + 1} "
+            f"belongs at row {correct_row + 1}, column {correct_col + 1}.\n\n"
+            f"Hints used: {self.hints_used}/{self.max_hints}"
+        )
+
+        if self.hints_used >= self.max_hints:
+            self.hint_btn.config(state="disabled")
+    
+    def solve_puzzle(self):
+        if self.board is None:
+            return
+
+        self.board.solve()
+        self.selected_tile = None
+        self.refresh_puzzle()
+
+        self.status_label.config(
+            text=f"Moves: {self.board.moves} | "
+                 f"Tiles remaining: {self.board.tiles_remaining()}"
+        )
+
+        tk.messagebox.showinfo(
+            "Puzzle Solved",
+            "The puzzle has been solved!"
+        )
     
     def refresh_puzzle(self):
         puzzle_cv = self.board.render()

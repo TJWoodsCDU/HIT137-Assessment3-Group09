@@ -194,8 +194,17 @@ class PuzzleBoard:
         return tuple(scrambling)
 
     def solve(self):
-        while self.__history:
-            self.__history.pop().undo(self)
+        # Put every tile back into its original position
+        self.__tiles.sort(key=lambda tile: tile.position)
+
+        # Reset rotation and flip of every tile
+        for tile in self.__tiles: 
+            tile.reset_orientation()
+
+        # Clear move history
+        self.__history.clear()
+
+        # Reset move counter
         self.__moves = 0
 
     # Record player moves
