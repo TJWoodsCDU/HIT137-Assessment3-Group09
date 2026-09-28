@@ -1,3 +1,4 @@
+from puzzle import ImageProcessor, PuzzleBoard
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog as tkfiledialog
@@ -120,7 +121,7 @@ class StartPage(tk.Frame):
             """
             print(f"Debug: Enter Game of size {g_size.get()} with image {file_path}")
             game_state.set_img_path(file_path)
-            game_state.set_size(g_size)
+            game_state.set_size(g_size.get())
             controller.show_frame(GamePage)
 
         self.enter_btn = ttk.Button(
@@ -144,6 +145,10 @@ class GamePage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
 
+        # Puzzle processing
+        self.processor = ImageProcessor()
+        self.board = None
+
         # Define widgets
 
         # Original image
@@ -152,11 +157,18 @@ class GamePage(tk.Frame):
         img = None
         self.original_img = tk.Label(self, text="No image loaded")
 
+        # Puzzle image
+        self.puzzle_lbl = tk.Label(self, text="Puzzle")
+        self.puzzle_img = tk.Label(self, text="No puzzle loaded") 
+
 
         # Place widgets
         # TODO: make it look pretty
         self.original_lbl.grid(row=0, column=0)
         self.original_img.grid(row=1, column=0)
+        
+        self.puzzle_lbl.grid(row=0, column=1)
+        self.puzzle_img.grid(row=1, column=1)
 
     def on_show(self):
         path = pathlib.Path(game_state.get_img_path()).resolve()
@@ -166,6 +178,13 @@ class GamePage(tk.Frame):
             pil_img = Image.fromarray(rgb_img)
             self.img = ImageTk.PhotoImage(pil_img)
             self.original_img.config(image=self.img, text="")
+
+            # Prepare image for the puzzle
+            grid_size = game_state.get_size()
+            prepared_img = self.processor.prepare(cv_img, grid_size)
+
+            # Create puzzle board
+            self.board = PuzzleBoard(prepared_img, grid_size)
 
 
 

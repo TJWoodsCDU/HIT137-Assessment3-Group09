@@ -89,8 +89,8 @@ class ImageProcessor:
         return image
     
     # We crop the center tile and then from that scale out to the full canvas
-    def preprare(self, image: np.ndarray, grind_size: int) -> np.ndarray:
-        size = self.canvas_size(grind_size)
+    def prepare(self, image: np.ndarray, grid_size: int) -> np.ndarray:
+        size = self.canvas_size(grid_size)
         height, width = image.shape[:2]
 
         side = min(height, width)
