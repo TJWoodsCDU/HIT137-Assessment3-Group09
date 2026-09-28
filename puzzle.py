@@ -61,6 +61,8 @@ class Tile:
         elif self.__rotation == 270:
             tiles = cv.rotate(tiles, cv.ROTATE_90_COUNTERCLOCKWISE)
 
+        return tiles
+
 class ImageProcessor:
     def __init__(self, target_size: int = 400):
         self.__target_size = target_size
@@ -122,8 +124,8 @@ class PuzzleBoard:
         self.__image_size = prepared_image.shape[0]
         self.__tile_size = self.__image_size // grid_size
         self.__tiles = [
-            Tile(tiles, position)
-            for tiles, position in enumerate(
+            Tile(tile, position)
+            for position, tile in enumerate(
                 ImageProcessor.slice_tiles(prepared_image, grid_size)
             )
         ]
@@ -220,7 +222,7 @@ class PuzzleBoard:
 
     def is_tile_correct(self, position: int) -> bool:
         tile = self.__tiles[position]
-        return tile.home_index == position and tile.is_home_orientation()
+        return tile.position == position and tile.original_state()
 
     def incorrect_positions(self) -> list:
         return [
@@ -235,8 +237,8 @@ class PuzzleBoard:
     def is_solved(self) -> bool:
         return self.tiles_remaining() == 0
 
-    def home_of(self, position: int) -> int:
-        return self.__tiles[position].home_index
+    def home_of(self, position: int) -> int: 
+        return self.__tiles[position].position
 
     # Geometry helper
 

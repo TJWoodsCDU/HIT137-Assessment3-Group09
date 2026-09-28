@@ -51,7 +51,7 @@ class Rotate(Scrambling):
     "Rotating a tile clockwise by 90, 180 or 270 degrees"
 
     def __init__(self, position: int, degrees: int):
-        super.__init__("Rotate")
+        super().__init__("Rotate")
         self.__position = position
         self.__degrees = degrees % 360
 
@@ -76,7 +76,7 @@ class Flip(Scrambling):
     "Flip a tile horizontally or vertically"
 
     def __init__(self, position: int, axis: str):
-        super.__init__("Flip")
+        super().__init__("Flip")
         self.__position = position
         self.__axis = axis
 
