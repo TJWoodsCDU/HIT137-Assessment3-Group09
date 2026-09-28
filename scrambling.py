@@ -1,5 +1,8 @@
 import random
 
+horizontal = "horizontal"
+vertical = "vertical"
+
 class Scrambling:
     def __init__(self, name: str):
         self._name = name
@@ -142,7 +145,7 @@ class Randomizer:
         for _ in range(flip_count):
             transformations.append(
                 Flip(
-                    positions[cursor], self.__rng.choice(("horizontal", "vertical"))
+                    positions[cursor], self.__rng.choice((horizontal, vertical))
                 )
             )
             cursor += 1
