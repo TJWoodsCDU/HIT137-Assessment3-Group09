@@ -9,7 +9,7 @@ class Scrambling:
 
     @property
     def name(self) -> str:
-        return self.name
+        return self._name
 
     def apply(self, board):
         raise NotImplementedError
@@ -64,7 +64,7 @@ class Rotate(Scrambling):
         return self.__position
 
     def apply(self, board):
-        board.rotate(self.__position, (360 - self.__degrees) % 360)
+        board.rotate(self.__position, self.__degrees)
 
     def undo(self, board):
         board.rotate(self.__position, (360 - self.__degrees) % 360)

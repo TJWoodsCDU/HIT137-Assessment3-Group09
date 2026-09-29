@@ -10,6 +10,9 @@ from scrambling import (
     Randomizer
 )
 
+class ImageLoadError(Exception):
+    """Raised when a file cannot be decoded as an image."""
+
 class Tile:
     def __init__(self, tiles: np.ndarray, position: int):
         self.__tiles = tiles
@@ -77,7 +80,7 @@ class ImageProcessor:
     @staticmethod
     def load(path: str) -> np.ndarray:
         try:
-            raw_bytes = np.from_file(path, dtype=np.unit8)
+            raw_bytes = np.fromfile(path, dtype=np.uint8)
         except OSError as error:
             raise ValueError("The file could not be opened")
 
