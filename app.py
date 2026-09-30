@@ -135,7 +135,6 @@ class StartPage(BasePage):
         )
 
         # Place widgets
-        # TODO: make it look pretty
         self.rdio_lbl.grid(row=0, column=0)
         i = 0
         for rdio in rdios:
